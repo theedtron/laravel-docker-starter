@@ -1,44 +1,79 @@
-mysql:
-  image: mysql:5.7
-  container_name: starter_databse
-  ports:
-    - 4800:3306
+version: '3'
 
-  environment:
-    MYSQL_DATABASE: starter_laravel
-    MYSQL_ROOT_PASSWORD: secret
-    MYSQL_PASSWORD: secret
+services:
+  #PHP Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: php:fpm-alpine
+    container_name: app
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+      working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - app-network
 
+  #Nginx Service
+  webserver:
+    image: nginx:alpine
+    container_name: webserver
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8081:80"
+      - "8086:443"
+    volumes:
+      - ./:/var/www
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - app-network
 
-php:
-  image: php:fpm-alpine
-  container_name: starter_php
-  volumes:
-    - .:/var/www/lara-docker-starter
-  entrypoint:
-    - php-fpm
+  #MySQL Service
+  db:
+    image: mysql:5.7.22
+    container_name: db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "33060:3306"
+    environment:
+      MYSQL_DATABASE: lara_docker_starter
+      MYSQL_ROOT_PASSWORD: password
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/my.cnf
+    networks:
+      - app-network
 
-nginx:
-  image: nginx:alpine
-  container_name: starter_nginx
-  volumes_from:
-    - php
-  volumes:
-    - .:/var/www/lara-docker-starter
-    - ./build/nginx.conf:/etc/nginx/conf.d/default.conf
-  links:
-    - php
-  ports:
-    - 8080:80
-
-phpmyadmin:
+  phpmyadmin:
     links:
-      - mysql
+      - db
     image: phpmyadmin/phpmyadmin
     container_name: starter_phpmyadmin
-    restart: always
+    restart: unless-stopped
     ports:
-      - 8081:80
+      - 8082:80
     environment:
-      PMA_HOST: mysql
-      MYSQL_ROOT_PASSWORD: secret
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: password
+
+
+#Docker Networks
+networks:
+  app-network:
+    driver: bridge
+
+
+#Volumes
+volumes:
+  dbdata:
+    driver: local
