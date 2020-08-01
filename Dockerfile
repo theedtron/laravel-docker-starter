@@ -18,7 +18,9 @@ RUN apt-get update && apt-get install -y \
     vim \
     unzip \
     git \
-    curl
+    curl \
+    supervisor \
+    redis-server
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -40,6 +42,13 @@ COPY . /var/www
 
 # Copy existing application directory permissions
 COPY --chown=www:www . /var/www
+
+#copy supervisord configs
+COPY ./supervisor/supervisord.conf /etc/supervisor/supervisord.conf
+COPY ./supervisor/lara-app.conf /etc/supervisor/conf.d/lara-app.conf
+
+#start supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
 
 # Change current user to www
 USER www
