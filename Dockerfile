@@ -42,6 +42,10 @@ COPY . /var/www
 
 # Copy existing application directory permissions
 COPY --chown=www:www . /var/www
+RUN chown -R 1000:www-data /var/www
+RUN chmod -R 755 /var/www
+RUN chmod -R 775 /var/www/storage
+RUN chmod -R 775 /var/www/bootstrap/cache
 
 #copy supervisord configs
 COPY ./supervisor/supervisord.conf /etc/supervisor/supervisord.conf
