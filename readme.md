@@ -1,7 +1,30 @@
 ## To run
 
 - Install docker
-- use command **docker-compose up**
+- Install docker-compose
+- Add network proxy https://github.com/theedtron/docker-compose-nginx-reverse-proxy
+- Add variables HOST_URL,VIRTUAL_PORT,MAIL_SUPPORT,DB_NAME,DB_PASSWORD in .env file
+- Add **force ssl** for laravel vendor packages
+- use command **docker-compose up -d**
+
+## Description
+
+- HOST_URL: tells **nginx-proxy** under which domain should this container be reachable and **letsencrypt** that this container’s traffic should be SSL encrypted, and which domain to request a Let’s Encrypt certificate for.
+- VIRTUAL_PORT: tells nginx-proxy which port to forward requests to. In this case it’s 80 as is usual for a HTTP server
+- MAIL_SUPPORT: s used to tell Let’s Encrypt where to send certificate expiration notices.
+- DB_NAME: Database name
+- DB_PASSWORD: Database password
+- Your DB_HOST should be the name of your database server in this case it's **db**
+
+## Force ssl
+
+Add the code below to the boot method in AppServiceProvider class
+
+use Illuminate\Routing\UrlGenerator;
+
+public function boot(UrlGenerator $url){
+    $url->forceScheme('https');
+}
 
 <p align="center"><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="400"></p>
 
