@@ -26,9 +26,13 @@ services:
     container_name: webserver
     restart: unless-stopped
     tty: true
-    ports:
-      - "8081:80"
-      - "8086:443"
+    expose:
+      - "80"
+    environment:
+      - VIRTUAL_HOST=${HOST_URL}
+      - VIRTUAL_PORT=${VIRTUAL_PORT}
+      - LETSENCRYPT_HOST=${HOST_URL}
+      - LETSENCRYPT_EMAIL=${MAIL_SUPPORT}
     volumes:
       - ./:/var/www
       - ./nginx/conf.d/:/etc/nginx/conf.d/
@@ -41,11 +45,11 @@ services:
     container_name: db
     restart: unless-stopped
     tty: true
-    ports:
-      - "33060:3306"
+    expose:
+      - "3306"
     environment:
-      MYSQL_DATABASE: lara_docker_starter
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
     volumes:
@@ -60,8 +64,8 @@ services:
     image: phpmyadmin/phpmyadmin
     container_name: starter_phpmyadmin
     restart: unless-stopped
-    ports:
-      - 8082:80
+    expose:
+      - "80"
     environment:
       PMA_HOST: db
       MYSQL_ROOT_PASSWORD: password
@@ -70,7 +74,8 @@ services:
 #Docker Networks
 networks:
   app-network:
-    driver: bridge
+    external:
+      name: nginx-proxy
 
 
 #Volumes
